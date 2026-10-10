@@ -1,0 +1,14 @@
+--- a/src/widgets/widgets/qtabbar.cpp
++++ b/src/widgets/widgets/qtabbar.cpp
+@@ -2434,7 +2434,11 @@
+     if (style()->styleHint(QStyle::SH_TabBar_AllowWheelScrolling, nullptr, this)) {
+         const bool wheelVertical = qAbs(event->angleDelta().y()) > qAbs(event->angleDelta().x());
+         const bool tabsVertical = verticalTabs(d->shape);
+-        if (event->device()->capabilities().testFlag(QInputDevice::Capability::PixelScroll)) {
++        // Wayland may expose a generic pointing device with PixelScroll for
++        // both touchpad gestures and physical mouse wheels. Keep discrete
++        // mouse wheels on the tab-switching path.
++        if (event->device()->capabilities().testFlag(QInputDevice::Capability::PixelScroll)
++            && event->source() != Qt::MouseEventNotSynthesized) {
+             // For wheels/touch pads with pixel precision, scroll the tab bar if
+             // it has the right orientation.
